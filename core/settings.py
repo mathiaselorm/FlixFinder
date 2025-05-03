@@ -232,8 +232,8 @@ DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='memis@melarc.me')
 broker_connection_retry_on_startup = True
 
 # Celery configuration
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "redis://127.0.0.1:6380/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6380/0"
 
 
 CELERY_TASK_EAGER_PROPAGATES = True  # Raise errors immediately
