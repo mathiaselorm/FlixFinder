@@ -1,9 +1,9 @@
 #My application
 django_errors.log
 .python-version
-Surprise
-Dataset
-nbs
+Surprise/
+Dataset/
+nbs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
