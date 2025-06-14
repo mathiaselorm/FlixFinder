@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, status, permissions, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from django_rest_passwordreset.views import ResetPasswordRequestToken, ResetPasswordConfirm
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import (
@@ -90,6 +90,33 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 @extend_schema(
+    summary="Refresh JWT tokens",
+    description="Refresh JWT access tokens using a valid refresh token.",
+    responses={
+        200: OpenApiResponse(description="Tokens refreshed successfully"),
+        401: OpenApiResponse(description="Unauthorized - Invalid refresh token")
+    },
+    tags=["Authentication"],
+)   
+class CustomTokenRefreshView(TokenRefreshView):
+    pass 
+    
+
+@extend_schema(
+    summary="Verify JWT token",
+    description="Verify the validity of a JWT access token.",
+    responses={
+        200: OpenApiResponse(description="Token is valid"),
+        401: OpenApiResponse(description="Unauthorized - Invalid token")
+    },
+    tags=["Authentication"],
+)
+class CustomTokenVerifyView(TokenVerifyView,):
+    pass
+
+
+
+@extend_schema(
     summary="Request password reset",
     description="Send a password reset email (if the address exists).",
     request=inline_serializer(
@@ -150,7 +177,7 @@ class CustomPasswordResetConfirmView(ResetPasswordConfirm):
         ),
         400: OpenApiResponse(description="Validation error"),
     },
-    tags=["User Management"],
+    tags=["Profile"],
 )
 class PasswordChangeView(generics.UpdateAPIView):
     """
@@ -176,30 +203,47 @@ class PasswordChangeView(generics.UpdateAPIView):
 
 @extend_schema_view(
     get=extend_schema(
-        summary="Retrieve current user",
+        summary="Retrieve current user's profile",
+        description="Fetch the profile details of the currently authenticated user.",
         responses={200: UserSerializer},
+        tags=["Profile"],
     ),
     patch=extend_schema(
-        summary="Update current user",
+        summary="Update current user's profile",
+        description=(
+            "Partially update the authenticated user's profile fields. "
+            "Only non-sensitive fields (e.g. first_name, last_name, gender, preferred_genres) "
+            "may be modified. Email changes must be unique."
+        ),
         request=UserSerializer,
         responses={200: UserSerializer},
+        tags=["Profile"],
     ),
     delete=extend_schema(
-        summary="Delete current user",
-        responses={204: OpenApiResponse(description="User deleted")},
+        summary="Delete current user's account",
+        description="Permanently delete the authenticated user's account. This action cannot be undone.",
+        responses={204: OpenApiResponse(description="User account deleted successfully.")},
+        tags=["Profile"],
     ),
 )
 class UserDetailsView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET /api/user/        → Current user's profile
-    PATCH /api/user/      → Update profile fields
-    DELETE /api/user/     → Delete own account
+    GET /api/user/    → Retrieve your own profile.
+    PATCH /api/user/  → Update allowed fields on your profile.
+    DELETE /api/user/ → Delete your account.
     """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        # Always operate on the currently authenticated user
         return self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        # Perform deletion and return 204
+        user = self.get_object()
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(

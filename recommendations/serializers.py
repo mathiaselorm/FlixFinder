@@ -4,6 +4,8 @@ from recommendations.models import Movie, Genre, Comment, Watchlist, Rating
 
 
 class MovieMiniSerializer(serializers.ModelSerializer):
+    in_watchlist = serializers.SerializerMethodField()
+    
     class Meta:
         model  = Movie
         fields = [
@@ -13,7 +15,14 @@ class MovieMiniSerializer(serializers.ModelSerializer):
             "poster_url",
             "average_rating",
             "overview",
+            "in_watchlist",
         ]
+        
+    def get_in_watchlist(self, obj):
+        user = self.context.get("request").user
+        if not user or user.is_anonymous:
+            return False
+        return obj.watchlisted_by.filter(pk=user.pk).exists()
 
 
 class GenreWithMoviesSerializer(serializers.ModelSerializer):
@@ -111,7 +120,30 @@ class MovieDetailSerializer(serializers.ModelSerializer):
         user = self.context.get("request").user
         if not user or user.is_anonymous:
             return False
-        return obj.watchlisted_by.filter(pk=user.pk).exists()
+        return obj.watchlisted_by.filter(user=user).exists()
+
+
+class MovieWatchlistSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(
+        source="movie.title",
+        read_only=True,
+        help_text="The movie’s title"
+    )
+    in_watchlist = serializers.SerializerMethodField(
+        help_text="Whether the movie is in the user’s watchlist"
+    )
+    added_on = serializers.DateTimeField(
+        read_only=True,
+        help_text="When the movie was added to the watchlist",
+    )
+
+    class Meta:
+        model = Watchlist
+        fields = ["title", "in_watchlist", "added_on"]
+
+    def get_in_watchlist(self, obj):
+        # Always true for a Watchlist instance
+        return True
 
 
 class WatchlistSerializer(serializers.ModelSerializer):
@@ -148,7 +180,22 @@ class MovieRecommendationSerializer(serializers.ModelSerializer):
     # we’ll pass a dict of scores in the context 
         return self.context.get('predicted_scores', {}).get(obj.pk, 0)
      
-     
+ 
+ 
+class RatingMiniSerializer(serializers.ModelSerializer):
+    """
+    A minimal serializer for ratings, used in MovieDetailSerializer.
+    """
+    user = serializers.StringRelatedField(read_only=True)
+    movie = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.all(),
+        help_text="ID of the movie being rated"
+    )
+
+    class Meta:
+        model = Rating
+        fields = ['movie', 'user', 'score']
+        read_only_fields = ['movie', 'user', 'score'] 
      
 class RatingSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
