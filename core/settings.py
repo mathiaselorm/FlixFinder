@@ -260,6 +260,7 @@ PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hour in seconds
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://flixfinder-pwa.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -281,6 +282,7 @@ CSRF_COOKIE_HTTPONLY = False  # Allows JavaScript to access the token
 CSRF_COOKIE_NAME = "csrftoken"  # Name of the CSRF token in cookies
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "https://flixfinder-pwa.vercel.app",
 ]  
 
 
