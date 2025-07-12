@@ -258,10 +258,12 @@ CELERY_WORKER_REDIRECT_STDOUTS_LEVEL = 'DEBUG'
 
 PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hour in seconds
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://flixfinder-pwa.vercel.app"
-]
+CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "https://flixfinder-pwa.vercel.app"
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 
