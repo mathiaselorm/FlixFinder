@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'corsheaders',
     'drf_spectacular',
+    "django_celery_beat",
     'accounts.apps.AccountsConfig',
     'recommendations.apps.RecommendationsConfig',
 ]
